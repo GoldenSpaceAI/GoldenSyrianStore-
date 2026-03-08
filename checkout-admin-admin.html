@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin - Golden Syrian Tech</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Cairo', sans-serif; background: #1a1a1a; min-height: 100vh; }
+    .login-card { background: white; border-radius: 20px; padding: 40px; max-width: 400px; margin: 100px auto; }
+    .admin-panel { display: none; }
+    .order-card { background: white; border-radius: 10px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+    .status-pending { color: #f59e0b; }
+    .status-approved { color: #10b981; }
+    .status-declined { color: #ef4444; }
+  </style>
+</head>
+<body class="p-4">
+  <!-- Login Form -->
+  <div class="login-card" id="loginForm">
+    <h2 class="text-2xl font-black text-center mb-6">🔒 Admin Login</h2>
+    <input type="password" id="adminPassword" placeholder="Enter password" class="w-full p-3 border rounded-lg mb-4">
+    <button onclick="checkPassword()" class="w-full bg-yellow-500 text-white py-3 rounded-lg font-bold hover:bg-yellow-600">Login</button>
+  </div>
+
+  <!-- Admin Panel -->
+  <div class="admin-panel" id="adminPanel">
+    <div class="container mx-auto">
+      <h1 class="text-3xl font-black text-white mb-8">📋 Admin Dashboard</h1>
+      <div id="ordersList"></div>
+    </div>
+  </div>
+
+  <script>
+    // Password will be set in Render environment
+    const ADMIN_PASSWORD = window.ADMIN_PASSWORD || 'admin123'; // Change in Render
+
+    function checkPassword() {
+      const entered = document.getElementById('adminPassword').value;
+      if (entered === ADMIN_PASSWORD) {
+        document.getElementById('loginForm').style.display = 'none';
+        document.getElementById('adminPanel').style.display = 'block';
+        loadOrders();
+      } else {
+        alert('Wrong password!');
+      }
+    }
+
+    function loadOrders() {
+      const orders = JSON.parse(localStorage.getItem('orders')) || [];
+      const list = document.getElementById('ordersList');
+      
+      if (orders.length === 0) {
+        list.innerHTML = '<p class="text-white">No orders yet</p>';
+        return;
+      }
+
+      list.innerHTML = orders.map(order => `
+        <div class="order-card">
+          <div class="flex justify-between items-start mb-4">
+            <div>
+              <span class="text-sm text-gray-500">Order #${order.id}</span>
+              <h3 class="font-bold text-xl">${order.name}</h3>
+            </div>
+            <span class="font-bold text-lg">$${order.total}</span>
+          </div>
+          
+          <div class="grid grid-cols-2 gap-4 mb-4">
+            <div>
+              <p class="text-gray-600">📞 ${order.phone}</p>
+              <p class="text-gray-600">🏙️ ${order.town}</p>
+              <p class="text-gray-600">🏢 ${order.building}, Floor ${order.floor}</p>
+              ${order.extra ? `<p class="text-gray-600">📝 ${order.extra}</p>` : ''}
+            </div>
+            <div>
+              <p class="font-bold">Items:</p>
+              ${order.items.map(item => `<p>${item.name} - $${item.price}</p>`).join('')}
+            </div>
+          </div>
+
+          <div class="flex justify-between items-center">
+            <div>
+              Status: 
+              <span class="font-bold ${order.status === 'approved' ? 'status-approved' : order.status === 'declined' ? 'status-declined' : 'status-pending'}">
+                ${order.status || 'pending'}
+              </span>
+            </div>
+            <div class="flex gap-2">
+              <button onclick="updateOrderStatus(${order.id}, 'approved')" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">✅ Approve</button>
+              <button onclick="updateOrderStatus(${order.id}, 'declined')" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">❌ Decline</button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    window.updateOrderStatus = function(orderId, status) {
+      const orders = JSON.parse(localStorage.getItem('orders')) || [];
+      const order = orders.find(o => o.id === orderId);
+      if (order) {
+        order.status = status;
+        localStorage.setItem('orders', JSON.stringify(orders));
+        loadOrders();
+      }
+    };
+  </script>
+</body>
+</html>
