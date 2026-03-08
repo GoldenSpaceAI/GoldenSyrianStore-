@@ -110,10 +110,6 @@
       color: #333;
     }
     
-    button.secondary:hover {
-      background: #d0d0d0;
-    }
-    
     .step {
       display: none;
     }
@@ -143,12 +139,6 @@
       display: block;
     }
     
-    .status.info {
-      background: #e6f3ff;
-      color: #1e4b6e;
-      display: block;
-    }
-    
     .back-link {
       text-align: center;
       margin-top: 10px;
@@ -158,7 +148,6 @@
       color: #667eea;
       text-decoration: none;
       cursor: pointer;
-      font-size: 14px;
     }
   </style>
 </head>
@@ -195,9 +184,8 @@
         </div>
       </div>
       
-      <!-- Store Account Flow -->
+      <!-- Store Account Flow (same as personal for now) -->
       <div id="storeFlow" style="display: none;">
-        <!-- Step 1: Email -->
         <div id="storeStep1" class="step active">
           <div class="form-group">
             <input type="email" id="storeEmail" placeholder="Enter store email" autocomplete="off">
@@ -205,7 +193,6 @@
           <button onclick="sendStoreCode()">Send Verification Code</button>
         </div>
         
-        <!-- Step 2: Code -->
         <div id="storeStep2" class="step">
           <div class="form-group">
             <input type="text" id="storeCode" placeholder="Enter 6-digit code" maxlength="6" autocomplete="off">
@@ -219,28 +206,25 @@
       
       <!-- Status Messages -->
       <div id="statusMessage" class="status"></div>
+      
+      <div style="text-align: center; margin-top: 20px;">
+        <a href="/" style="color: #667eea; text-decoration: none;">← Back to Store</a>
+      </div>
     </div>
   </div>
   
   <script>
-    // ==================== SECURE CONFIGURATION ====================
-    // These come from Vite environment variables (set in Render)
+    // ==================== CONFIGURATION ====================
+    // Try to get from window (if set by index.jsx) or use fallback
     const EMAILJS_CONFIG = {
-      publicKey: import.meta.env.VITE_EMAILJS_PUBLIC_KEY,
-      serviceId: import.meta.env.VITE_EMAILJS_SERVICE_ID,
-      templateId: import.meta.env.VITE_EMAILJS_TEMPLATE_ID
+      publicKey: window.EMAILJS_PUBLIC_KEY || 'dDvl-e12BShRXicoY',
+      serviceId: window.EMAILJS_SERVICE_ID || 'service_0felh4d',
+      templateId: window.EMAILJS_TEMPLATE_ID || 'template_qvzjnbl'
     };
     
-    // Check if variables loaded
-    if (!EMAILJS_CONFIG.publicKey || !EMAILJS_CONFIG.serviceId || !EMAILJS_CONFIG.templateId) {
-      console.error('EmailJS config missing! Check Render environment variables.');
-      document.getElementById('statusMessage').className = 'status error';
-      document.getElementById('statusMessage').textContent = '❌ Configuration error. Please try again later.';
-    } else {
-      // Initialize EmailJS
-      emailjs.init(EMAILJS_CONFIG.publicKey);
-      console.log('EmailJS initialized securely from environment variables');
-    }
+    // Initialize EmailJS
+    emailjs.init(EMAILJS_CONFIG.publicKey);
+    console.log('EmailJS initialized');
     
     // ==================== STATE ====================
     let currentType = 'personal';
@@ -278,9 +262,7 @@
     
     async function sendEmail(email, code) {
       try {
-        showStatus('📧 Sending verification email...', 'info');
-        
-        console.log('Sending to:', email);
+        showStatus('📧 Sending...', 'success');
         
         const response = await emailjs.send(
           EMAILJS_CONFIG.serviceId,
@@ -295,12 +277,11 @@
         if (response.status === 200) {
           showStatus(`✅ Code sent to ${email}`, 'success');
           return true;
-        } else {
-          throw new Error('Failed to send');
         }
+        return false;
       } catch (error) {
-        console.error('EmailJS Error:', error);
-        showStatus('❌ Failed to send email', 'error');
+        console.error('Email error:', error);
+        showStatus('❌ Failed to send. Check console.', 'error');
         return false;
       }
     }
@@ -309,8 +290,8 @@
     async function sendPersonalCode() {
       const email = document.getElementById('personalEmail').value.trim();
       
-      if (!email || !email.includes('@') || !email.includes('.')) {
-        showStatus('❌ Please enter a valid email address', 'error');
+      if (!email || !email.includes('@')) {
+        showStatus('❌ Valid email required', 'error');
         return;
       }
       
@@ -328,20 +309,21 @@
     function verifyPersonalCode() {
       const enteredCode = document.getElementById('personalCode').value.trim();
       
-      if (!enteredCode) {
-        showStatus('❌ Please enter the verification code', 'error');
-        return;
-      }
-      
       if (enteredCode === currentCode) {
-        showStatus(`✅ Welcome back, ${currentEmail}!`, 'success');
+        showStatus(`✅ Welcome ${currentEmail}!`, 'success');
+        
+        // Store login state
+        localStorage.setItem('user', JSON.stringify({
+          email: currentEmail,
+          type: currentType,
+          loggedIn: true
+        }));
         
         setTimeout(() => {
-          resetAll();
-          showStatus('Test complete - you can try again', 'info');
-        }, 2000);
+          window.location.href = '/';
+        }, 1500);
       } else {
-        showStatus('❌ Invalid code. Please try again.', 'error');
+        showStatus('❌ Wrong code', 'error');
       }
     }
     
@@ -357,8 +339,8 @@
     async function sendStoreCode() {
       const email = document.getElementById('storeEmail').value.trim();
       
-      if (!email || !email.includes('@') || !email.includes('.')) {
-        showStatus('❌ Please enter a valid email address', 'error');
+      if (!email || !email.includes('@')) {
+        showStatus('❌ Valid email required', 'error');
         return;
       }
       
@@ -376,20 +358,20 @@
     function verifyStoreCode() {
       const enteredCode = document.getElementById('storeCode').value.trim();
       
-      if (!enteredCode) {
-        showStatus('❌ Please enter the verification code', 'error');
-        return;
-      }
-      
       if (enteredCode === currentCode) {
-        showStatus(`✅ Welcome back, ${currentEmail}!`, 'success');
+        showStatus(`✅ Welcome ${currentEmail}!`, 'success');
+        
+        localStorage.setItem('user', JSON.stringify({
+          email: currentEmail,
+          type: currentType,
+          loggedIn: true
+        }));
         
         setTimeout(() => {
-          resetAll();
-          showStatus('Test complete - you can try again', 'info');
-        }, 2000);
+          window.location.href = '/';
+        }, 1500);
       } else {
-        showStatus('❌ Invalid code. Please try again.', 'error');
+        showStatus('❌ Wrong code', 'error');
       }
     }
     
@@ -399,12 +381,6 @@
       document.getElementById('storeEmail').value = '';
       document.getElementById('storeCode').value = '';
       hideStatus();
-    }
-    
-    function resetAll() {
-      selectType('personal');
-      resetPersonal();
-      resetStore();
     }
   </script>
 </body>
