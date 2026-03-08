@@ -223,17 +223,24 @@
   </div>
   
   <script>
-    // ==================== CONFIGURATION ====================
-    // REPLACE THESE WITH YOUR REAL KEYS (from Render environment)
+    // ==================== SECURE CONFIGURATION ====================
+    // These come from Vite environment variables (set in Render)
     const EMAILJS_CONFIG = {
-      publicKey: 'dDvl-e12BShRXicoY',      // Your public key
-      serviceId: 'service_0felh4d',          // Your service ID
-      templateId: 'template_qvzjnbl'         // Your template ID
+      publicKey: import.meta.env.VITE_EMAILJS_PUBLIC_KEY,
+      serviceId: import.meta.env.VITE_EMAILJS_SERVICE_ID,
+      templateId: import.meta.env.VITE_EMAILJS_TEMPLATE_ID
     };
     
-    // Initialize EmailJS
-    emailjs.init(EMAILJS_CONFIG.publicKey);
-    console.log('EmailJS initialized with public key:', EMAILJS_CONFIG.publicKey);
+    // Check if variables loaded
+    if (!EMAILJS_CONFIG.publicKey || !EMAILJS_CONFIG.serviceId || !EMAILJS_CONFIG.templateId) {
+      console.error('EmailJS config missing! Check Render environment variables.');
+      document.getElementById('statusMessage').className = 'status error';
+      document.getElementById('statusMessage').textContent = '❌ Configuration error. Please try again later.';
+    } else {
+      // Initialize EmailJS
+      emailjs.init(EMAILJS_CONFIG.publicKey);
+      console.log('EmailJS initialized securely from environment variables');
+    }
     
     // ==================== STATE ====================
     let currentType = 'personal';
@@ -244,12 +251,10 @@
     function selectType(type) {
       currentType = type;
       
-      // Update buttons
       document.querySelectorAll('.type-btn').forEach(btn => {
         btn.classList.toggle('active', btn.textContent.toLowerCase().includes(type));
       });
       
-      // Show correct flow
       document.getElementById('personalFlow').style.display = type === 'personal' ? 'block' : 'none';
       document.getElementById('storeFlow').style.display = type === 'store' ? 'block' : 'none';
       
@@ -276,9 +281,6 @@
         showStatus('📧 Sending verification email...', 'info');
         
         console.log('Sending to:', email);
-        console.log('With code:', code);
-        console.log('Service ID:', EMAILJS_CONFIG.serviceId);
-        console.log('Template ID:', EMAILJS_CONFIG.templateId);
         
         const response = await emailjs.send(
           EMAILJS_CONFIG.serviceId,
@@ -290,8 +292,6 @@
           }
         );
         
-        console.log('EmailJS response:', response);
-        
         if (response.status === 200) {
           showStatus(`✅ Code sent to ${email}`, 'success');
           return true;
@@ -300,7 +300,7 @@
         }
       } catch (error) {
         console.error('EmailJS Error:', error);
-        showStatus('❌ Failed to send email. Check your keys.', 'error');
+        showStatus('❌ Failed to send email', 'error');
         return false;
       }
     }
@@ -335,9 +335,7 @@
       
       if (enteredCode === currentCode) {
         showStatus(`✅ Welcome back, ${currentEmail}!`, 'success');
-        console.log('Login successful:', { type: 'personal', email: currentEmail });
         
-        // Reset after 2 seconds
         setTimeout(() => {
           resetAll();
           showStatus('Test complete - you can try again', 'info');
@@ -385,7 +383,6 @@
       
       if (enteredCode === currentCode) {
         showStatus(`✅ Welcome back, ${currentEmail}!`, 'success');
-        console.log('Login successful:', { type: 'store', email: currentEmail });
         
         setTimeout(() => {
           resetAll();
