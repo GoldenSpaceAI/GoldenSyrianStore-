@@ -2,21 +2,20 @@
   "name": "golden-syrian-tech",
   "version": "1.0.0",
   "type": "module",
-  "license": "MIT",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "start": "vite preview"
+    "start": "vite preview --host 0.0.0.0 --port $PORT"
   },
   "dependencies": {
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
   },
   "devDependencies": {
-    "@vitejs/plugin-react": "^4.3.4",
-    "vite": "^6.0.0",
-    "tailwindcss": "^3.4.0",
+    "@vitejs/plugin-react": "^4.0.0",
+    "vite": "^4.0.0",
+    "tailwindcss": "^3.3.0",
     "autoprefixer": "^10.4.0",
     "postcss": "^8.4.0"
   }
