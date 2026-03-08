@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Checkout - Golden Syrian Tech</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Cairo', sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+    .checkout-card { background: white; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); width: 100%; max-width: 500px; padding: 40px; }
+    .form-group { margin-bottom: 20px; }
+    .form-group label { display: block; margin-bottom: 5px; font-weight: bold; color: #333; }
+    .form-group input, .form-group textarea { width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 16px; transition: all 0.3s; }
+    .form-group input:focus, .form-group textarea:focus { outline: none; border-color: #FFD700; box-shadow: 0 0 0 3px rgba(255,215,0,0.2); }
+    .phone-input { display: flex; align-items: center; border: 2px solid #e5e7eb; border-radius: 10px; overflow: hidden; }
+    .phone-prefix { background: #f3f4f6; padding: 12px; font-weight: bold; color: #4b5563; border-right: 2px solid #e5e7eb; }
+    .phone-input input { flex: 1; border: none; border-radius: 0; }
+    .phone-input input:focus { box-shadow: none; }
+    .submit-btn { width: 100%; background: linear-gradient(135deg, #FFD700, #FFA500); color: black; font-weight: bold; padding: 15px; border: none; border-radius: 10px; font-size: 18px; cursor: pointer; transition: all 0.3s; margin-top: 20px; }
+    .submit-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(255,215,0,0.3); }
+    .cart-summary { background: #f9fafb; border-radius: 10px; padding: 20px; margin-bottom: 30px; }
+  </style>
+</head>
+<body>
+  <div class="checkout-card">
+    <h1 class="text-3xl font-black text-center mb-6">📝 Complete Your Order</h1>
+    
+    <!-- Cart Summary -->
+    <div class="cart-summary" id="cartSummary"></div>
+
+    <form id="checkoutForm">
+      <div class="form-group">
+        <label>👤 Full Name</label>
+        <input type="text" id="name" required placeholder="Enter your full name">
+      </div>
+
+      <div class="form-group">
+        <label>📞 Phone Number</label>
+        <div class="phone-input">
+          <span class="phone-prefix">+963</span>
+          <input type="tel" id="phone" required placeholder="9XXXXXXXX">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>🏙️ Town / City</label>
+        <input type="text" id="town" required placeholder="e.g., Damascus">
+      </div>
+
+      <div class="form-group">
+        <label>🏢 Building Name / Number</label>
+        <input type="text" id="building" required placeholder="e.g., Building 5">
+      </div>
+
+      <div class="form-group">
+        <label>🔼 Floor</label>
+        <input type="text" id="floor" required placeholder="e.g., 3rd floor">
+      </div>
+
+      <div class="form-group">
+        <label>📝 Extra Information (Optional)</label>
+        <textarea id="extra" rows="2" placeholder="Landmarks, instructions, etc."></textarea>
+      </div>
+
+      <button type="submit" class="submit-btn">✅ Place Order</button>
+    </form>
+  </div>
+
+  <script>
+    // Load cart
+    const cart = JSON.parse(localStorage.getItem('cart')) || [];
+    
+    // Show cart summary
+    function showCartSummary() {
+      const summary = document.getElementById('cartSummary');
+      if (cart.length === 0) {
+        summary.innerHTML = '<p class="text-center text-gray-500">Your cart is empty</p><a href="/index.html" class="block text-center text-yellow-600 mt-2">Continue Shopping</a>';
+        document.querySelector('button').disabled = true;
+        return;
+      }
+      
+      let html = '<h3 class="font-bold mb-2">Your Items:</h3>';
+      cart.forEach(item => {
+        html += `<div class="flex justify-between py-1">${item.name} <span>$${item.price}</span></div>`;
+      });
+      const total = cart.reduce((sum, item) => sum + item.price, 0);
+      html += `<div class="font-bold text-lg mt-2 pt-2 border-t">Total: $${total}</div>`;
+      summary.innerHTML = html;
+    }
+
+    // Handle form submit
+    document.getElementById('checkoutForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      
+      if (cart.length === 0) {
+        alert('Your cart is empty!');
+        return;
+      }
+
+      const order = {
+        id: Date.now(),
+        name: document.getElementById('name').value,
+        phone: '+963' + document.getElementById('phone').value,
+        town: document.getElementById('town').value,
+        building: document.getElementById('building').value,
+        floor: document.getElementById('floor').value,
+        extra: document.getElementById('extra').value,
+        items: cart,
+        total: cart.reduce((sum, item) => sum + item.price, 0),
+        status: 'pending', // pending, approved, declined
+        date: new Date().toISOString()
+      };
+
+      // Save to localStorage (temporary)
+      const orders = JSON.parse(localStorage.getItem('orders')) || [];
+      orders.push(order);
+      localStorage.setItem('orders', JSON.stringify(orders));
+
+      // Clear cart
+      localStorage.setItem('cart', '[]');
+
+      // Show success
+      alert('✅ Order placed successfully! You can track your order at /my-ordered-products.html');
+      window.location.href = '/my-ordered-products.html';
+    });
+
+    showCartSummary();
+  </script>
+</body>
+</html>
