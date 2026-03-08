@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Orders - Golden Syrian Tech</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Cairo', sans-serif; background: #f9fafb; min-height: 100vh; padding: 20px; }
+    .order-card { background: white; border-radius: 10px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+    .status-pending { color: #f59e0b; font-weight: bold; }
+    .status-approved { color: #10b981; font-weight: bold; }
+    .status-declined { color: #ef4444; font-weight: bold; }
+    .step { flex: 1; text-align: center; position: relative; }
+    .step.completed .step-icon { background: #10b981; color: white; }
+    .step.active .step-icon { background: #FFD700; color: black; }
+    .step-icon { width: 40px; height: 40px; border-radius: 50%; background: #e5e7eb; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; font-weight: bold; }
+    .whatsapp-btn { position: fixed; bottom: 20px; right: 20px; z-index: 1000; background: #25D366; color: white; padding: 15px 20px; border-radius: 50px; display: flex; align-items: center; gap: 10px; font-weight: bold; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <div class="container mx-auto">
+    <div class="flex justify-between items-center mb-8">
+      <h1 class="text-3xl font-black">📦 My Orders</h1>
+      <a href="/index.html" class="text-yellow-600 hover:underline">← Continue Shopping</a>
+    </div>
+
+    <div id="ordersList"></div>
+  </div>
+
+  <a href="https://wa.me/963962060530" target="_blank" class="whatsapp-btn">
+    <i class="fab fa-whatsapp text-2xl"></i>
+    <span>Chat on WhatsApp</span>
+  </a>
+
+  <script>
+    function loadOrders() {
+      const orders = JSON.parse(localStorage.getItem('orders')) || [];
+      const list = document.getElementById('ordersList');
+      
+      if (orders.length === 0) {
+        list.innerHTML = `
+          <div class="text-center py-12">
+            <p class="text-6xl mb-4">🛒</p>
+            <p class="text-xl text-gray-600">No orders yet</p>
+            <a href="/index.html" class="inline-block mt-4 bg-yellow-500 text-white px-6 py-3 rounded-lg">Start Shopping</a>
+          </div>
+        `;
+        return;
+      }
+
+      list.innerHTML = orders.map(order => {
+        // Determine step based on status
+        let step = 1;
+        if (order.status === 'approved') step = 3;
+        if (order.status === 'declined') step = 1; // Show as declined
+        
+        const statusClass = order.status === 'approved' ? 'status-approved' : 
+                          order.status === 'declined' ? 'status-declined' : 'status-pending';
+        
+        return `
+          <div class="order-card">
+            <div class="flex justify-between items-start mb-4">
+              <div>
+                <span class="text-sm text-gray-500">Order #${order.id}</span>
+                <h3 class="font-bold text-xl">${order.name}</h3>
+              </div>
+              <div class="text-right">
+                <span class="font-bold text-lg">$${order.total}</span>
+                <p class="text-sm text-gray-500">${new Date(order.date).toLocaleDateString()}</p>
+              </div>
+            </div>
+
+            <!-- Status -->
+            <div class="mb-4">
+              Status: <span class="${statusClass}">${order.status || 'pending'}</span>
+            </div>
+
+            <!-- 5-Step Delivery Tracker -->
+            ${order.status === 'approved' ? `
+              <div class="mt-6 mb-4">
+                <h4 class="font-bold mb-4">Delivery Progress:</h4>
+                <div class="flex justify-between items-center">
+                  ${[1,2,3,4,5].map(s => `
+                    <div class="step ${s <= 3 ? 'completed' : ''}">
+                      <div class="step-icon">${s}</div>
+                      <div class="text-xs mt-1">
+                        ${s === 1 ? 'Ready at store' : ''}
+                        ${s === 2 ? 'Shipped to us' : ''}
+                        ${s === 3 ? 'With delivery' : ''}
+                        ${s === 4 ? 'Shipped to you' : ''}
+                        ${s === 5 ? 'Delivered' : ''}
+                      </div>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+            ` : ''}
+
+            <!-- Items -->
+            <div class="mt-4 pt-4 border-t">
+              <p class="font-bold mb-2">Items:</p>
+              ${order.items.map(item => `
+                <div class="flex justify-between py-1">
+                  <span>${item.name}</span>
+                  <span>$${item.price}</span>
+                </div>
+              `).join('')}
+            </div>
+
+            ${order.status === 'declined' ? `
+              <div class="mt-4 p-3 bg-red-50 text-red-700 rounded-lg">
+                ❌ Your order has been declined. Please contact us on WhatsApp.
+              </div>
+            ` : ''}
+          </div>
+        `;
+      }).reverse().join('');
+    }
+
+    loadOrders();
+  </script>
+</body>
+</html>
