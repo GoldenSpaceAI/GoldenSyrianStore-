@@ -3,12 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login Test - Golden Tech</title>
+  <title>Golden Tech - Login</title>
   
   <!-- EmailJS -->
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
   
+  <!-- Environment Variables from Render -->
+  <script src="/env.js"></script>
+  
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
   <style>
+    /* Your existing styles here */
     * {
       margin: 0;
       padding: 0;
@@ -16,8 +23,8 @@
     }
     
     body {
-      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      font-family: 'Inter', sans-serif;
+      background: #f8fafc;
       min-height: 100vh;
       display: flex;
       align-items: center;
@@ -27,67 +34,62 @@
     
     .container {
       width: 100%;
-      max-width: 500px;
+      max-width: 480px;
     }
     
     .card {
       background: white;
-      border-radius: 20px;
+      border-radius: 24px;
       padding: 40px;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      box-shadow: 0 20px 40px -10px rgba(0,0,0,0.1);
+      border: 1px solid #e2e8f0;
     }
     
-    h1 {
+    .logo {
       text-align: center;
-      color: #333;
-      margin-bottom: 10px;
-    }
-    
-    .subtitle {
-      text-align: center;
-      color: #666;
       margin-bottom: 30px;
-      font-size: 0.9rem;
     }
     
-    .account-type {
+    .logo h1 {
+      font-size: 28px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #b45309, #d97706);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: -0.5px;
+    }
+    
+    .account-types {
       display: flex;
-      gap: 15px;
+      gap: 12px;
       margin-bottom: 30px;
+      background: #f1f5f9;
+      padding: 4px;
+      border-radius: 50px;
     }
     
     .type-btn {
       flex: 1;
-      padding: 15px;
-      border: 2px solid #e0e0e0;
-      border-radius: 12px;
-      background: white;
-      cursor: pointer;
+      padding: 12px;
+      border: none;
+      background: transparent;
+      border-radius: 50px;
       font-weight: 600;
-      transition: all 0.3s;
+      cursor: pointer;
+      color: #64748b;
     }
     
     .type-btn.active {
-      border-color: #667eea;
-      background: #667eea;
-      color: white;
+      background: white;
+      color: #b45309;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
     }
     
-    .type-btn.personal.active {
-      background: #48bb78;
-      border-color: #48bb78;
-    }
-    
-    .type-btn.store.active {
-      background: #ed8936;
-      border-color: #ed8936;
-    }
-    
-    .form-step {
+    .step {
       display: none;
     }
     
-    .form-step.active {
+    .step.active {
       display: block;
     }
     
@@ -95,179 +97,190 @@
       margin-bottom: 20px;
     }
     
-    label {
+    .form-group label {
       display: block;
       margin-bottom: 8px;
       font-weight: 500;
-      color: #333;
+      color: #334155;
+      font-size: 14px;
     }
     
-    input {
-      width: 100%;
-      padding: 12px;
-      border: 2px solid #e0e0e0;
-      border-radius: 8px;
-      font-size: 16px;
-    }
-    
-    input:focus {
-      outline: none;
-      border-color: #667eea;
-    }
-    
-    button {
+    .form-group input {
       width: 100%;
       padding: 14px;
-      background: #667eea;
-      color: white;
-      border: none;
-      border-radius: 8px;
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
       font-size: 16px;
+    }
+    
+    .form-group input:focus {
+      outline: none;
+      border-color: #b45309;
+      box-shadow: 0 0 0 3px rgba(180, 83, 9, 0.1);
+    }
+    
+    .btn {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 12px;
       font-weight: 600;
+      font-size: 16px;
       cursor: pointer;
-      transition: background 0.3s;
-      margin-bottom: 10px;
     }
     
-    button:hover {
-      background: #5a67d8;
+    .btn-primary {
+      background: #b45309;
+      color: white;
     }
     
-    button.secondary {
-      background: #e0e0e0;
-      color: #333;
+    .btn-primary:hover {
+      background: #92400e;
     }
     
-    button.secondary:hover {
-      background: #d0d0d0;
+    .btn-secondary {
+      background: #f1f5f9;
+      color: #334155;
+      margin-top: 10px;
     }
     
-    .verification-status {
+    .status {
       margin-top: 20px;
-      padding: 15px;
-      border-radius: 8px;
-      text-align: center;
-      font-weight: 500;
+      padding: 12px;
+      border-radius: 12px;
+      font-size: 14px;
       display: none;
     }
     
-    .verification-status.success {
-      background: #c6f6d5;
-      color: #22543d;
+    .status.success {
+      background: #f0fdf4;
+      color: #166534;
+      border: 1px solid #86efac;
       display: block;
     }
     
-    .verification-status.error {
-      background: #fed7d7;
-      color: #742a2a;
+    .status.error {
+      background: #fef2f2;
+      color: #991b1b;
+      border: 1px solid #fecaca;
       display: block;
+    }
+    
+    .status.info {
+      background: #f0f9ff;
+      color: #075985;
+      border: 1px solid #bae6fd;
+      display: block;
+    }
+    
+    .code-input {
+      text-align: center;
+      font-size: 24px;
+      letter-spacing: 8px;
+      font-weight: 600;
     }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="card">
-      <h1>🔐 Golden Tech</h1>
-      <p class="subtitle">Email Verification Test - No Data Stored</p>
-      
-      <!-- Account Type Selection -->
-      <div class="account-type">
-        <button class="type-btn personal active" onclick="selectType('personal')">👤 Personal Account</button>
-        <button class="type-btn store" onclick="selectType('store')">🏬 Store Account</button>
+      <div class="logo">
+        <h1>GOLDEN TECH</h1>
       </div>
       
-      <!-- Personal Account Flow -->
-      <div id="personalFlow" class="form-step active">
-        <!-- Step 1: Email Input -->
-        <div id="personalStep1" class="form-step active">
+      <div class="account-types">
+        <button class="type-btn active" onclick="selectType('personal')">Personal</button>
+        <button class="type-btn" onclick="selectType('store')">Store</button>
+      </div>
+      
+      <!-- Personal Flow -->
+      <div id="personalFlow">
+        <div id="personalStep1" class="step active">
           <div class="form-group">
             <label>📧 Email Address</label>
             <input type="email" id="personalEmail" placeholder="your@email.com">
           </div>
-          <button onclick="sendPersonalCode()" id="personalSendBtn">Send Verification Code</button>
+          <button class="btn btn-primary" onclick="sendPersonalCode()">Send Code</button>
         </div>
         
-        <!-- Step 2: Code Verification -->
-        <div id="personalStep2" class="form-step">
+        <div id="personalStep2" class="step">
           <div class="form-group">
-            <label>🔢 Enter 4-Digit Code</label>
-            <input type="text" id="personalCode" placeholder="1234" maxlength="4">
+            <label>🔐 Enter 6-Digit Code</label>
+            <input type="text" id="personalCode" class="code-input" maxlength="6">
           </div>
-          <button onclick="verifyPersonalCode()" id="personalVerifyBtn">Verify & Login</button>
-          <button class="secondary" onclick="resetPersonal()">← Back</button>
+          <button class="btn btn-primary" onclick="verifyPersonalCode()">Verify</button>
+          <button class="btn btn-secondary" onclick="resetPersonal()">Back</button>
         </div>
       </div>
       
-      <!-- Store Account Flow -->
-      <div id="storeFlow" class="form-step">
-        <!-- Step 1: Email Input -->
-        <div id="storeStep1" class="form-step active">
+      <!-- Store Flow -->
+      <div id="storeFlow" style="display: none;">
+        <div id="storeStep1" class="step active">
           <div class="form-group">
-            <label>📧 Store Email Address</label>
+            <label>🏬 Store Email</label>
             <input type="email" id="storeEmail" placeholder="store@example.com">
           </div>
-          <button onclick="sendStoreCode()" id="storeSendBtn">Send Verification Code</button>
+          <button class="btn btn-primary" onclick="sendStoreCode()">Send Code</button>
         </div>
         
-        <!-- Step 2: Code Verification -->
-        <div id="storeStep2" class="form-step">
+        <div id="storeStep2" class="step">
           <div class="form-group">
-            <label>🔢 Enter 4-Digit Code</label>
-            <input type="text" id="storeCode" placeholder="1234" maxlength="4">
+            <label>🔐 Enter 6-Digit Code</label>
+            <input type="text" id="storeCode" class="code-input" maxlength="6">
           </div>
-          <button onclick="verifyStoreCode()" id="storeVerifyBtn">Verify & Login</button>
-          <button class="secondary" onclick="resetStore()">← Back</button>
+          <button class="btn btn-primary" onclick="verifyStoreCode()">Verify</button>
+          <button class="btn btn-secondary" onclick="resetStore()">Back</button>
         </div>
       </div>
       
-      <!-- Verification Status -->
-      <div id="verificationStatus" class="verification-status"></div>
-      
-      <!-- Reset Link -->
-      <div style="text-align: center; margin-top: 20px;">
-        <a href="#" onclick="resetAll()" style="color: #667eea; text-decoration: none;">🔄 Start Over</a>
-      </div>
+      <div id="statusMessage" class="status"></div>
     </div>
   </div>
   
   <script>
-    // ==================== RENDER ENVIRONMENT VARIABLES ====================
-    // These come from your Render dashboard
-    const EMAILJS_CONFIG = {
-      publicKey: '{{EMAILJS_PUBLIC_KEY}}',      // From Render env
-      serviceId: '{{EMAILJS_SERVICE_ID}}',      // From Render env
-      templateId: '{{EMAILJS_TEMPLATE_ID}}'     // From Render env
-    };
+    // ==================== CHECK RENDER ENV ====================
+    console.log('Render Environment Variables:', window.EMAILJS_CONFIG);
     
-    // Initialize EmailJS with public key from Render
-    emailjs.init(EMAILJS_CONFIG.publicKey);
+    if (!window.EMAILJS_CONFIG || !window.EMAILJS_CONFIG.publicKey) {
+      document.getElementById('statusMessage').className = 'status error';
+      document.getElementById('statusMessage').textContent = '❌ Environment variables not loaded. Check Render setup.';
+    } else {
+      // Initialize EmailJS
+      emailjs.init(window.EMAILJS_CONFIG.publicKey);
+      console.log('EmailJS initialized with public key from Render');
+    }
     
     // ==================== STATE ====================
     let currentType = 'personal';
     let currentCode = '';
     let currentEmail = '';
     
-    // ==================== FUNCTIONS ====================
     function selectType(type) {
       currentType = type;
-      document.querySelector('.type-btn.personal').classList.toggle('active', type === 'personal');
-      document.querySelector('.type-btn.store').classList.toggle('active', type === 'store');
-      document.getElementById('personalFlow').classList.toggle('active', type === 'personal');
-      document.getElementById('storeFlow').classList.toggle('active', type === 'store');
-      hideStatus();
+      document.querySelectorAll('.type-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.textContent.toLowerCase().includes(type));
+      });
+      document.getElementById('personalFlow').style.display = type === 'personal' ? 'block' : 'none';
+      document.getElementById('storeFlow').style.display = type === 'store' ? 'block' : 'none';
+    }
+    
+    function showStatus(msg, type) {
+      const status = document.getElementById('statusMessage');
+      status.className = 'status ' + type;
+      status.textContent = msg;
     }
     
     function generateCode() {
-      return Math.floor(1000 + Math.random() * 9000).toString();
+      return Math.floor(100000 + Math.random() * 900000).toString();
     }
     
     async function sendEmail(email, code) {
       try {
-        showStatus('📧 Sending email...', 'success');
+        showStatus('📧 Sending...', 'info');
         
         const response = await emailjs.send(
-          EMAILJS_CONFIG.serviceId,
-          EMAILJS_CONFIG.templateId,
+          window.EMAILJS_CONFIG.serviceId,
+          window.EMAILJS_CONFIG.templateId,
           {
             to_email: email,
             to_name: email.split('@')[0],
@@ -275,49 +288,42 @@
           }
         );
         
-        console.log('Email sent:', response);
-        return true;
+        if (response.status === 200) {
+          showStatus(`✅ Code sent to ${email}`, 'success');
+          return true;
+        }
+        return false;
       } catch (error) {
         console.error('Email error:', error);
-        showStatus('❌ Failed to send email. Check Render environment variables.', 'error');
+        showStatus('❌ Failed to send. Check Render env variables.', 'error');
         return false;
       }
     }
     
-    // ==================== PERSONAL ACCOUNT ====================
+    // ==================== PERSONAL ====================
     async function sendPersonalCode() {
       const email = document.getElementById('personalEmail').value;
-      
       if (!email || !email.includes('@')) {
-        showStatus('Please enter a valid email', 'error');
+        showStatus('❌ Valid email required', 'error');
         return;
       }
       
       currentEmail = email;
       currentCode = generateCode();
       
-      const sent = await sendEmail(email, currentCode);
-      
-      if (sent) {
+      if (await sendEmail(email, currentCode)) {
         document.getElementById('personalStep1').classList.remove('active');
         document.getElementById('personalStep2').classList.add('active');
-        showStatus(`✅ Code sent to ${email}`, 'success');
       }
     }
     
     function verifyPersonalCode() {
       const code = document.getElementById('personalCode').value;
-      
       if (code === currentCode) {
-        showStatus(`✅ Logged in as ${currentEmail} (Personal Account)`, 'success');
-        console.log('Login success:', { type: 'personal', email: currentEmail });
-        
-        setTimeout(() => {
-          resetAll();
-          showStatus('Test complete - you can try again', 'success');
-        }, 3000);
+        showStatus(`✅ Welcome ${currentEmail}!`, 'success');
+        setTimeout(resetAll, 2000);
       } else {
-        showStatus('❌ Wrong code. Please check your email and try again.', 'error');
+        showStatus('❌ Wrong code', 'error');
       }
     }
     
@@ -326,44 +332,32 @@
       document.getElementById('personalStep2').classList.remove('active');
       document.getElementById('personalEmail').value = '';
       document.getElementById('personalCode').value = '';
-      currentCode = '';
-      hideStatus();
     }
     
-    // ==================== STORE ACCOUNT ====================
+    // ==================== STORE ====================
     async function sendStoreCode() {
       const email = document.getElementById('storeEmail').value;
-      
       if (!email || !email.includes('@')) {
-        showStatus('Please enter a valid email', 'error');
+        showStatus('❌ Valid email required', 'error');
         return;
       }
       
       currentEmail = email;
       currentCode = generateCode();
       
-      const sent = await sendEmail(email, currentCode);
-      
-      if (sent) {
+      if (await sendEmail(email, currentCode)) {
         document.getElementById('storeStep1').classList.remove('active');
         document.getElementById('storeStep2').classList.add('active');
-        showStatus(`✅ Code sent to ${email}`, 'success');
       }
     }
     
     function verifyStoreCode() {
       const code = document.getElementById('storeCode').value;
-      
       if (code === currentCode) {
-        showStatus(`✅ Logged in as ${currentEmail} (Store Account)`, 'success');
-        console.log('Login success:', { type: 'store', email: currentEmail });
-        
-        setTimeout(() => {
-          resetAll();
-          showStatus('Test complete - you can try again', 'success');
-        }, 3000);
+        showStatus(`✅ Welcome ${currentEmail}!`, 'success');
+        setTimeout(resetAll, 2000);
       } else {
-        showStatus('❌ Wrong code. Please check your email and try again.', 'error');
+        showStatus('❌ Wrong code', 'error');
       }
     }
     
@@ -372,27 +366,12 @@
       document.getElementById('storeStep2').classList.remove('active');
       document.getElementById('storeEmail').value = '';
       document.getElementById('storeCode').value = '';
-      currentCode = '';
-      hideStatus();
-    }
-    
-    // ==================== UTILITIES ====================
-    function showStatus(message, type) {
-      const status = document.getElementById('verificationStatus');
-      status.className = 'verification-status ' + type;
-      status.innerHTML = message;
-      status.style.display = 'block';
-    }
-    
-    function hideStatus() {
-      document.getElementById('verificationStatus').style.display = 'none';
     }
     
     function resetAll() {
       selectType('personal');
       resetPersonal();
       resetStore();
-      hideStatus();
     }
   </script>
 </body>
