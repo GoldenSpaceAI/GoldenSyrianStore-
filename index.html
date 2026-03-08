@@ -9,426 +9,146 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: 'Cairo', sans-serif; background-color: #f9fafb; direction: ltr; }
-    body.rtl { direction: rtl; }
+    body { font-family: 'Cairo', sans-serif; background-color: #f9fafb; }
     .gold-bg { background: linear-gradient(135deg, #FFD700, #FFA500); }
-    .whatsapp-btn { position: fixed; bottom: 20px; right: 20px; z-index: 1000; background: #25D366; color: white; padding: 15px 20px; border-radius: 50px; display: flex; align-items: center; gap: 10px; font-weight: bold; box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3); transition: all 0.3s ease; }
-    .whatsapp-btn:hover { background-color: #128C7E; transform: scale(1.05); }
     .product-card { transition: all 0.3s ease; background: white; border-radius: 1rem; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
     .product-card:hover { transform: translateY(-5px); box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
-    .lang-switch { position: fixed; top: 20px; right: 20px; z-index: 1001; background: white; padding: 10px 15px; border-radius: 30px; cursor: pointer; font-weight: bold; border: 2px solid #FFD700; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-    .lang-switch:hover { background: #FFD700; }
-    .step { flex: 1; text-align: center; }
-    .step-icon { width: 40px; height: 40px; border-radius: 50%; background: #e5e7eb; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; font-weight: bold; }
-    .step.active .step-icon { background: #FFD700; color: black; }
-    .product-image { width: 100%; height: 200px; object-fit: contain; padding: 20px; background: #f3f4f6; }
-    @media (max-width: 768px) { 
-      .whatsapp-btn span { display: none; } 
-      .lang-switch { top: 10px; right: 10px; padding: 5px 10px; }
-    }
+    .cart-icon { position: relative; cursor: pointer; }
+    .cart-count { position: absolute; top: -8px; right: -8px; background: red; color: white; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 12px; }
+    .cart-dropdown { position: absolute; top: 50px; right: 0; width: 350px; background: white; border-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); display: none; z-index: 1000; border: 1px solid #e5e7eb; }
+    .cart-dropdown.show { display: block; }
+    .whatsapp-btn { position: fixed; bottom: 20px; right: 20px; z-index: 1000; background: #25D366; color: white; padding: 15px 20px; border-radius: 50px; display: flex; align-items: center; gap: 10px; font-weight: bold; text-decoration: none; box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3); }
+    .whatsapp-btn:hover { background: #128C7E; }
+    @media (max-width: 768px) { .whatsapp-btn span { display: none; } }
   </style>
 </head>
-<body>
-  <!-- Language Switcher -->
-  <div class="lang-switch" id="langSwitch">
-    <span id="langText">🇸🇾 العربية</span>
-  </div>
-  
-  <!-- Main App Container -->
-  <div id="app"></div>
-  
+<body class="bg-gray-50">
+  <!-- Header with Cart -->
+  <header class="gold-bg text-white p-4 shadow-lg">
+    <div class="container mx-auto flex justify-between items-center">
+      <h1 class="text-2xl md:text-3xl font-black">🏆 GOLDEN SYRIAN TECH</h1>
+      <div class="cart-icon relative" id="cartIcon">
+        <i class="fas fa-shopping-cart text-2xl"></i>
+        <span class="cart-count" id="cartCount">0</span>
+        
+        <!-- Cart Dropdown -->
+        <div class="cart-dropdown" id="cartDropdown">
+          <div class="p-4">
+            <h3 class="font-bold text-lg mb-3">🛒 Your Cart</h3>
+            <div id="cartItems" class="max-h-60 overflow-y-auto"></div>
+            <div class="mt-4 pt-3 border-t">
+              <div class="flex justify-between font-bold text-lg">
+                <span>Total:</span>
+                <span id="cartTotal">$0</span>
+              </div>
+              <a href="/checkout.html" class="block w-full bg-green-500 text-white text-center py-3 rounded-lg mt-4 font-bold hover:bg-green-600 transition">
+                ✅ Proceed to Checkout
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Products Grid -->
+  <main class="container mx-auto p-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" id="productsGrid"></div>
+  </main>
+
   <!-- WhatsApp Button -->
-  <a href="https://wa.me/963962060530" target="_blank" class="whatsapp-btn" id="whatsappBtn">
-    <i class="fab fa-whatsapp" style="font-size: 24px;"></i>
+  <a href="https://wa.me/963962060530" target="_blank" class="whatsapp-btn">
+    <i class="fab fa-whatsapp text-2xl"></i>
     <span>Chat on WhatsApp</span>
   </a>
 
-  <!-- Main JavaScript -->
-  <script type="module">
-    // ==================== PRODUCTS DATA ====================
+  <script>
+    // Products data
     const products = [
-      { 
-        id: 1, 
-        name_en: '🎮 PS5 Console', 
-        name_ar: '🎮 بلايستيشن 5', 
-        price: 570, 
-        image: 'https://via.placeholder.com/300?text=PS5',
-        category: 'electronics',
-        description_en: 'Brand new • 1-year warranty • Free delivery',
-        description_ar: 'جديد • ضمان سنة • توصيل مجاني'
-      },
-      { 
-        id: 2, 
-        name_en: '📺 Haier 65" QLED 4K Smart TV', 
-        name_ar: '📺 تلفزيون هاير 65 بوصة QLED 4K', 
-        price: 550, 
-        image: 'https://i.ibb.co/j9j6hPyg/tv.jpg',
-        category: 'electronics',
-        description_en: '✨ 65" QLED 4K • 120Hz • Google TV • Dolby Audio • 4 HDMI',
-        description_ar: '✨ 65 بوصة QLED 4K • 120Hz • جوجل TV • دولبي صوت • 4 مداخل HDMI'
-      },
-      { 
-        id: 3, 
-        name_en: '🧹 Vacuum Cleaner', 
-        name_ar: '🧹 مكنسة كهربائية', 
-        price: 120, 
-        image: 'https://via.placeholder.com/300?text=Vacuum',
-        category: 'home',
-        description_en: 'Power Pro • Hepafilter • Lightweight',
-        description_ar: 'قوية • فلتر • خفيفة'
-      },
-      { 
-        id: 4, 
-        name_en: '🎧 Gaming Headset', 
-        name_ar: '🎧 سماعة ألعاب', 
-        price: 40, 
-        image: 'https://via.placeholder.com/300?text=Headset',
-        category: 'electronics',
-        description_en: 'RGB • Noise cancelling • Comfort fit',
-        description_ar: 'RGB • عزل ضوضاء • مريحة'
-      },
-      { 
-        id: 5, 
-        name_en: '📱 iPhone 13', 
-        name_ar: '📱 آيفون 13', 
-        price: 630, 
-        image: 'https://via.placeholder.com/300?text=iPhone',
-        category: 'phones',
-        description_en: 'Mid-range • 1-year warranty',
-        description_ar: 'متوسط • ضمان سنة'
-      },
+      { id: 1, name: '🎮 PS5 Console', price: 570, image: 'https://placehold.co/400x300/FFD700/white?text=PS5' },
+      { id: 2, name: '📺 Haier 65" QLED 4K TV', price: 550, image: 'https://i.ibb.co/j9j6hPyg/tv.jpg' },
+      { id: 3, name: '🧹 Vacuum Cleaner', price: 120, image: 'https://placehold.co/400x300/FFD700/white?text=Vacuum' },
+      { id: 4, name: '🎧 Gaming Headset', price: 40, image: 'https://placehold.co/400x300/FFD700/white?text=Headset' },
+      { id: 5, name: '📱 iPhone 13', price: 630, image: 'https://placehold.co/400x300/FFD700/white?text=iPhone' },
     ];
 
-    const categories = [
-      { id: 'all', name_en: 'All', name_ar: 'الكل' },
-      { id: 'electronics', name_en: '📱 Electronics', name_ar: '📱 إلكترونيات' },
-      { id: 'home', name_en: '🏠 Home Appliances', name_ar: '🏠 أجهزة منزلية' },
-      { id: 'phones', name_en: '📱 Phones', name_ar: '📱 هواتف' },
-    ];
+    // Cart state
+    let cart = JSON.parse(localStorage.getItem('cart')) || [];
 
-    // ==================== STATE ====================
-    let state = {
-      cart: [],
-      language: 'en',
-      selectedCategory: 'all',
-      searchTerm: '',
-      showCheckout: false,
-      step: 1,
-      phone: '',
-      address: '',
-      verificationCode: '',
-      orderStep: 1
-    };
-
-    // ==================== RENDER FUNCTION ====================
-    function render() {
-      const app = document.getElementById('app');
-      const isEn = state.language === 'en';
-      
-      // Update body direction
-      document.body.className = isEn ? '' : 'rtl';
-      document.getElementById('langText').textContent = isEn ? '🇸🇾 العربية' : '🇬🇧 English';
-      document.getElementById('whatsappBtn').querySelector('span').textContent = isEn ? 'Chat on WhatsApp' : 'دردشة واتساب';
-      
-      // Filter products
-      const filteredProducts = products.filter(p => {
-        const matchesCategory = state.selectedCategory === 'all' || p.category === state.selectedCategory;
-        const matchesSearch = isEn 
-          ? p.name_en.toLowerCase().includes(state.searchTerm.toLowerCase())
-          : p.name_ar.includes(state.searchTerm);
-        return matchesCategory && matchesSearch;
-      });
-
-      // Calculate total
-      const total = state.cart.reduce((sum, item) => sum + item.price, 0);
-
-      // Build HTML
-      app.innerHTML = `
-        <!-- Header -->
-        <header class="gold-bg text-white p-6 shadow-lg">
-          <div class="container mx-auto">
-            <h1 class="text-4xl md:text-5xl font-black text-center">
-              ${isEn ? '🏆 GOLDEN SYRIAN TECH' : '🏆 جولدن سيـريان تك'}
-            </h1>
-            <p class="text-xl md:text-2xl text-center text-yellow-100 mt-2">
-              ${isEn ? 'Premium Electronics • Delivered to Your Door' : 'إلكترونيات فاخرة • توصيل لباب البيت'}
-            </p>
-          </div>
-        </header>
-
-        <!-- Ramadan Sale -->
-        <div class="bg-red-600 text-white py-6 md:py-8">
-          <div class="container mx-auto text-center px-4">
-            <h2 class="text-3xl md:text-4xl font-bold mb-2">
-              ${isEn ? '🔥 RAMADAN MEGA SALE 🔥' : '🔥 عروض رمضان المميزة 🔥'}
-            </h2>
-            <p class="text-xl md:text-2xl mb-4">
-              ${isEn ? 'UP TO 80% OFF + FREE DELIVERY' : 'خصومات حتى ٨٠٪ + توصيل مجاني'}
-            </p>
-            <div class="bg-white text-red-600 inline-block px-6 md:px-8 py-3 rounded-full font-bold text-lg md:text-xl">
-              ${isEn ? '🎁 GET YOUR FIRST PRODUCT WITH FREE DELIVERY' : '🎁 احصل على أول منتج مع توصيل مجاني'}
-            </div>
+    // Render products
+    function renderProducts() {
+      const grid = document.getElementById('productsGrid');
+      grid.innerHTML = products.map(p => `
+        <div class="product-card">
+          <img src="${p.image}" alt="${p.name}" class="w-full h-48 object-contain bg-gray-100 p-4">
+          <div class="p-4">
+            <h3 class="font-bold text-lg">${p.name}</h3>
+            <p class="text-2xl font-bold text-yellow-600 my-2">$${p.price}</p>
+            <button onclick="addToCart(${p.id})" class="w-full bg-yellow-500 text-white py-2 rounded-lg font-bold hover:bg-yellow-600 transition">
+              🛒 Add to Cart
+            </button>
           </div>
         </div>
-
-        <!-- 5-Step Delivery -->
-        <div class="container mx-auto my-8 px-4">
-          <div class="flex justify-between items-center gap-2">
-            ${[1,2,3,4,5].map(s => `
-              <div class="step ${s <= state.orderStep ? 'active' : ''}">
-                <div class="step-icon">${s}</div>
-                <div class="text-xs md:text-sm mt-1">
-                  ${s === 1 ? (isEn ? 'Ready at store' : 'جاهز بالمتجر') : ''}
-                  ${s === 2 ? (isEn ? 'Shipped to us' : 'شحن إلينا') : ''}
-                  ${s === 3 ? (isEn ? 'With delivery' : 'مع شركة التوصيل') : ''}
-                  ${s === 4 ? (isEn ? 'Shipped to you' : 'شحن إليك') : ''}
-                  ${s === 5 ? (isEn ? 'Delivered' : 'تم التوصيل') : ''}
-                </div>
-              </div>
-            `).join('')}
-          </div>
-        </div>
-
-        <!-- Search and Categories -->
-        <div class="container mx-auto my-8 px-4">
-          <input
-            type="text"
-            placeholder="${isEn ? '🔍 Search products...' : '🔍 ابحث عن منتجات...'}"
-            class="w-full p-3 border rounded-lg mb-4"
-            id="searchInput"
-            value="${state.searchTerm}"
-          />
-
-          <div class="flex flex-wrap gap-2 mb-4">
-            ${categories.map(cat => `
-              <button
-                class="px-4 py-2 rounded-lg category-btn ${state.selectedCategory === cat.id ? 'bg-yellow-500 text-white' : 'bg-gray-200'}"
-                data-category="${cat.id}"
-              >
-                ${isEn ? cat.name_en : cat.name_ar}
-              </button>
-            `).join('')}
-          </div>
-        </div>
-
-        <!-- Products Grid -->
-        <div class="container mx-auto my-8 px-4">
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            ${filteredProducts.map(p => `
-              <div class="product-card">
-                <img src="${p.image}" alt="${isEn ? p.name_en : p.name_ar}" class="product-image">
-                <div class="p-6">
-                  <h3 class="text-2xl font-bold mb-2">${isEn ? p.name_en : p.name_ar}</h3>
-                  <p class="text-gray-600 mb-2">${isEn ? p.description_en : p.description_ar}</p>
-                  <p class="text-3xl font-bold text-yellow-600 mb-4">$${p.price}</p>
-                  <button
-                    class="w-full bg-yellow-500 text-white py-3 rounded-lg font-bold hover:bg-yellow-600 transition add-to-cart"
-                    data-id="${p.id}"
-                  >
-                    ${isEn ? '🛒 Add to Cart' : '🛒 أضف إلى السلة'}
-                  </button>
-                </div>
-              </div>
-            `).join('')}
-          </div>
-        </div>
-
-        <!-- Cart Section -->
-        ${state.cart.length > 0 && !state.showCheckout ? `
-          <div class="container mx-auto my-8 px-4">
-            <div class="bg-white rounded-2xl shadow-lg p-6">
-              <h3 class="text-2xl font-bold mb-4">
-                ${isEn ? '🛒 Your Cart' : '🛒 سلة التسوق'} (${state.cart.length})
-              </h3>
-              ${state.cart.map((item, index) => `
-                <div class="flex justify-between items-center py-2 border-b">
-                  <span>${isEn ? item.name_en : item.name_ar}</span>
-                  <div class="flex items-center gap-4">
-                    <span class="font-bold">$${item.price}</span>
-                    <button class="text-red-500 hover:text-red-700 remove-item" data-index="${index}">✕</button>
-                  </div>
-                </div>
-              `).join('')}
-              <div class="flex justify-between items-center mt-4">
-                <span class="text-2xl font-bold">
-                  ${isEn ? 'Total:' : 'المجموع:'} $${total}
-                </span>
-                <button class="bg-green-500 text-white px-8 py-3 rounded-lg font-bold hover:bg-green-600 transition" id="checkoutBtn">
-                  ${isEn ? '✅ Checkout' : '✅ إتمام الشراء'}
-                </button>
-              </div>
-            </div>
-          </div>
-        ` : ''}
-
-        <!-- Checkout Section -->
-        ${state.showCheckout ? `
-          <div class="container mx-auto my-8 px-4">
-            <div class="bg-white rounded-2xl shadow-lg p-6 max-w-md mx-auto">
-              <h3 class="text-2xl font-bold mb-6">
-                ${isEn ? '📋 Checkout' : '📋 إتمام الشراء'}
-              </h3>
-
-              ${state.step === 1 ? `
-                <div class="mb-4">
-                  <label class="block mb-2 font-bold">${isEn ? '📞 Phone Number' : '📞 رقم الهاتف'}</label>
-                  <input type="tel" placeholder="09xxxxxxxx" class="w-full p-3 border rounded-lg" id="phoneInput" value="${state.phone}">
-                </div>
-                <div class="mb-4">
-                  <label class="block mb-2 font-bold">${isEn ? '📍 Delivery Address' : '📍 عنوان التوصيل'}</label>
-                  <textarea class="w-full p-3 border rounded-lg" rows="3" id="addressInput">${state.address}</textarea>
-                </div>
-                <button class="w-full bg-yellow-500 text-white py-3 rounded-lg font-bold hover:bg-yellow-600 transition" id="sendCodeBtn">
-                  ${isEn ? '📱 Send Verification Code' : '📱 إرسال رمز التحقق'}
-                </button>
-              ` : ''}
-
-              ${state.step === 2 ? `
-                <div class="mb-4">
-                  <label class="block mb-2 font-bold">${isEn ? '🔢 Enter 6-digit Code' : '🔢 أدخل رمز التحقق'}</label>
-                  <input type="text" maxlength="6" class="w-full p-3 border rounded-lg text-center text-2xl" id="codeInput" value="${state.verificationCode}">
-                </div>
-                <button class="w-full bg-yellow-500 text-white py-3 rounded-lg font-bold hover:bg-yellow-600 transition" id="verifyBtn">
-                  ${isEn ? '✅ Verify' : '✅ تحقق'}
-                </button>
-              ` : ''}
-
-              ${state.step === 3 ? `
-                <div class="text-center mb-6">
-                  <span class="text-6xl">✅</span>
-                  <p class="text-xl font-bold mt-2 text-green-600">
-                    ${isEn ? 'Phone Verified!' : 'تم التحقق من الرقم!'}
-                  </p>
-                </div>
-                <button class="w-full bg-green-500 text-white py-3 rounded-lg font-bold hover:bg-green-600 transition" id="placeOrderBtn">
-                  ${isEn ? '📲 Send Order via WhatsApp' : '📲 إرسال الطلب عبر واتساب'}
-                </button>
-              ` : ''}
-
-              <button class="w-full mt-4 text-gray-500 hover:text-gray-700" id="backToCartBtn">
-                ${isEn ? '← Back to Cart' : '← الرجوع إلى السلة'}
-              </button>
-            </div>
-          </div>
-        ` : ''}
-
-        <!-- Footer -->
-        <footer class="bg-gray-900 text-white py-8 mt-12">
-          <div class="container mx-auto text-center px-4">
-            <p class="text-2xl font-bold mb-2">📞 +963 962 060 530</p>
-            <p class="text-xl mb-4">🌐 goldensyrianstore.onrender.com</p>
-            <p class="text-gray-400">
-              ${isEn ? '📍 Delivery in Damascus • Cash on Delivery' : '📍 التوصيل في دمشق • الدفع عند الاستلام'}
-            </p>
-            <p class="text-gray-500 mt-4">
-              ${isEn ? '© 2025 Golden Syrian Tech. All rights reserved.' : '© 2025 جولدن سيـريان تك. جميع الحقوق محفوظة.'}
-            </p>
-          </div>
-        </footer>
-      `;
-
-      // ==================== EVENT LISTENERS ====================
-      
-      // Search input
-      document.getElementById('searchInput')?.addEventListener('input', (e) => {
-        state.searchTerm = e.target.value;
-        render();
-      });
-
-      // Category buttons
-      document.querySelectorAll('.category-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          state.selectedCategory = e.target.dataset.category;
-          render();
-        });
-      });
-
-      // Add to cart
-      document.querySelectorAll('.add-to-cart').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          const productId = parseInt(e.target.dataset.id);
-          const product = products.find(p => p.id === productId);
-          state.cart.push(product);
-          render();
-        });
-      });
-
-      // Remove from cart
-      document.querySelectorAll('.remove-item').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          const index = parseInt(e.target.dataset.index);
-          state.cart.splice(index, 1);
-          render();
-        });
-      });
-
-      // Checkout button
-      document.getElementById('checkoutBtn')?.addEventListener('click', () => {
-        state.showCheckout = true;
-        state.step = 1;
-        render();
-      });
-
-      // Back to cart
-      document.getElementById('backToCartBtn')?.addEventListener('click', () => {
-        state.showCheckout = false;
-        render();
-      });
-
-      // Send verification code
-      document.getElementById('sendCodeBtn')?.addEventListener('click', () => {
-        state.phone = document.getElementById('phoneInput')?.value || '';
-        state.address = document.getElementById('addressInput')?.value || '';
-        if (state.phone && state.address) {
-          alert(isEn ? '📱 Verification code sent: 123456' : '📱 تم إرسال رمز التحقق: 123456');
-          state.step = 2;
-          render();
-        }
-      });
-
-      // Verify code
-      document.getElementById('verifyBtn')?.addEventListener('click', () => {
-        const code = document.getElementById('codeInput')?.value;
-        if (code === '123456') {
-          state.step = 3;
-          render();
-        } else {
-          alert(isEn ? '❌ Wrong code' : '❌ رمز خاطئ');
-        }
-      });
-
-      // Place order
-      document.getElementById('placeOrderBtn')?.addEventListener('click', () => {
-        let message = isEn ? "🛒 *New Order*\n\n" : "🛒 *طلب جديد*\n\n";
-        state.cart.forEach(item => {
-          message += `${isEn ? item.name_en : item.name_ar} - $${item.price}\n`;
-        });
-        message += `\n💰 *Total: $${total}*\n`;
-        message += isEn 
-          ? `📞 Phone: ${state.phone}\n📍 Address: ${state.address}\n💵 Payment: Cash on delivery`
-          : `📞 الهاتف: ${state.phone}\n📍 العنوان: ${state.address}\n💵 الدفع: عند الاستلام`;
-        
-        window.open(`https://wa.me/963962060530?text=${encodeURIComponent(message)}`);
-        
-        // Reset after order
-        state.cart = [];
-        state.showCheckout = false;
-        state.step = 1;
-        state.phone = '';
-        state.address = '';
-        state.verificationCode = '';
-        render();
-      });
+      `).join('');
     }
 
-    // ==================== LANGUAGE SWITCHER ====================
-    document.getElementById('langSwitch').addEventListener('click', () => {
-      state.language = state.language === 'en' ? 'ar' : 'en';
-      render();
+    // Add to cart
+    window.addToCart = function(id) {
+      const product = products.find(p => p.id === id);
+      cart.push(product);
+      localStorage.setItem('cart', JSON.stringify(cart));
+      updateCartUI();
+    };
+
+    // Remove from cart
+    window.removeFromCart = function(index) {
+      cart.splice(index, 1);
+      localStorage.setItem('cart', JSON.stringify(cart));
+      updateCartUI();
+    };
+
+    // Update cart UI
+    function updateCartUI() {
+      document.getElementById('cartCount').textContent = cart.length;
+      
+      const cartItems = document.getElementById('cartItems');
+      const cartTotal = document.getElementById('cartTotal');
+      
+      if (cart.length === 0) {
+        cartItems.innerHTML = '<p class="text-gray-500 text-center py-4">Your cart is empty</p>';
+        cartTotal.textContent = '$0';
+      } else {
+        cartItems.innerHTML = cart.map((item, index) => `
+          <div class="flex justify-between items-center py-2 border-b">
+            <span class="truncate">${item.name}</span>
+            <div class="flex items-center gap-3">
+              <span class="font-bold">$${item.price}</span>
+              <button onclick="removeFromCart(${index})" class="text-red-500 hover:text-red-700">✕</button>
+            </div>
+          </div>
+        `).join('');
+        
+        const total = cart.reduce((sum, item) => sum + item.price, 0);
+        cartTotal.textContent = `$${total}`;
+      }
+    }
+
+    // Toggle cart dropdown
+    document.getElementById('cartIcon').addEventListener('click', (e) => {
+      e.stopPropagation();
+      document.getElementById('cartDropdown').classList.toggle('show');
     });
 
-    // ==================== INITIAL RENDER ====================
-    render();
+    // Close dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.cart-icon')) {
+        document.getElementById('cartDropdown').classList.remove('show');
+      }
+    });
+
+    // Initial render
+    renderProducts();
+    updateCartUI();
   </script>
 </body>
 </html>
